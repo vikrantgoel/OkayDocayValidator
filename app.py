@@ -1123,7 +1123,7 @@ def download_highlighted_pdf():
 
 @app.route('/health')
 def health_check():
-    """Health check endpoint"""
+    """Health check"""
     try:
         return jsonify({
             'success': True,
