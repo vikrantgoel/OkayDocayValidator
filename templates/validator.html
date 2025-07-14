@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Validator - OkayDocay</title>
+    <title>PDF Validator - Complete Application</title>
     <style>
         * {
             margin: 0;
@@ -198,17 +198,6 @@
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
         }
 
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-        }
-
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -256,19 +245,58 @@
             border: 1px solid #e2e8f0;
         }
 
-        .page-section {
-            margin-bottom: 25px;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
+        .form-title {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 1.25rem;
+            text-align: center;
         }
 
-        .page-section h3 {
-            color: #1e293b;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #e5e7eb;
+        .form-description {
+            color: #64748b;
+            margin-bottom: 20px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 5px;
+            font-style: italic;
         }
 
         .results-panel {
@@ -331,485 +359,13 @@
             border-left: 4px solid #ef4444;
         }
 
-        .mismatch-item h4 {
-            color: #991b1b;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-
-        .mismatch-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            font-size: 14px;
-        }
-
-        .detail-item {
-            background: white;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 5px;
-        }
-
-        .detail-value {
-            color: #6b7280;
-            font-family: 'Monaco', 'Consolas', monospace;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .loading.show {
-            display: block;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f4f6;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .download-section {
-            text-align: center;
-            margin-top: 30px;
-            padding: 20px;
-            background: #f0fdf4;
-            border-radius: 12px;
-            border: 1px solid #bbf7d0;
-        }
-
-        .form-help {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 5px;
-            font-style: italic;
-        }
-
-        .config-version-info {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            border-radius: 6px;
-            padding: 12px;
-            margin: 10px 0;
-            font-size: 13px;
-        }
-
-        .config-version-info .version-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .config-version-info .detail-item {
-            background: white;
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 1px solid #e0f2fe;
-        }
-
-        .config-version-info .detail-label {
-            font-weight: 600;
-            color: #0369a1;
-            font-size: 11px;
-            text-transform: uppercase;
-        }
-
-        .config-version-info .detail-value {
-            color: #1e40af;
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 12px;
-        }
-
-        .latest-badge {
-            background: #10b981;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: 600;
-            margin-left: 5px;
-        }
-
-        .config-selector {
-            position: relative;
-        }
-
-        .config-selector::after {
-            content: "📋";
-            position: absolute;
-            right: 35px;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-            color: #64748b;
-        }
-
-        .file-type-selector::after {
-            content: "📁";
-            position: absolute;
-            right: 35px;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-            color: #64748b;
-        }
-
-        #config-version {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-        }
-
-        #config-version:focus {
-            background: white;
-            border-color: #3b82f6;
-        }
-
-        .config-preview {
-            background: #fefce8;
-            border: 1px solid #fde047;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .config-preview.show {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .config-preview h4 {
-            color: #92400e;
-            margin-bottom: 10px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .config-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            font-size: 12px;
-        }
-
-        .config-preview-item {
-            background: white;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #fbbf24;
-            text-align: center;
-        }
-
-        .config-preview-label {
-            font-weight: 600;
-            color: #92400e;
-            margin-bottom: 4px;
-        }
-
-        .config-preview-value {
-            color: #451a03;
-            font-family: 'Monaco', 'Consolas', monospace;
-        }
-
-        /* Field Location Modal Styles */
-        .field-location-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-
-        .field-location-modal.show {
-            opacity: 1;
-        }
-
-        .field-location-modal.closing {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-
-        .field-location-content {
-            background: white;
-            border-radius: 16px;
-            max-width: 90vw;
-            max-height: 90vh;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: modalBounceIn 0.4s ease;
-        }
-
-        @keyframes modalBounceIn {
-            0% {
-                transform: scale(0.7) translateY(-50px);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.05) translateY(0);
-            }
-            100% {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .field-location-header {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .field-location-header h3 {
-            margin: 0;
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .field-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .field-badge, .page-badge, .coord-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .field-badge.text {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .field-badge.checkbox {
-            background: #8b5cf6;
-            color: white;
-        }
-
-        .field-badge.signature {
-            background: #f97316;
-            color: white;
-        }
-
-        .page-badge {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        .coord-badge {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-family: 'Monaco', 'Consolas', monospace;
-        }
-
-        .close-modal-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .close-modal-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-
-        .field-location-body {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 0;
-            max-height: 70vh;
-        }
-
-        .pdf-section-container {
-            position: relative;
-            overflow: auto;
-            background: #f8fafc;
-            border-right: 1px solid #e5e7eb;
-        }
-
-        .pdf-page-image {
-            display: block;
-            max-width: 100%;
-            height: auto;
-            transition: transform 0.3s ease;
-        }
-
-        .field-highlight-box {
-            position: absolute;
-            border: 3px solid #ef4444;
-            background: rgba(239, 68, 68, 0.2);
-            border-radius: 4px;
-            pointer-events: none;
-            z-index: 10;
-            animation: highlightPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes highlightPulse {
-            0%, 100% {
-                opacity: 0.8;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.02);
-            }
-        }
-
-        .field-pointer {
-            position: absolute;
-            font-size: 20px;
-            z-index: 11;
-            animation: pointerBounce 1s ease-in-out infinite;
-            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
-        }
-
-        @keyframes pointerBounce {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-5px);
-            }
-        }
-
-        .field-details-panel {
-            padding: 20px;
-            background: white;
-            overflow-y: auto;
-        }
-
-        .field-details-panel h4 {
-            color: #1e293b;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .detail-grid {
-            margin-bottom: 20px;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-row .detail-label {
-            font-weight: 600;
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-
-        .detail-row .detail-value {
-            font-family: 'Monaco', 'Consolas', monospace;
-            color: #1e293b;
-            font-size: 0.875rem;
-            text-align: right;
-        }
-
-        .field-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .zoom-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 5px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 8px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 0.75rem;
-        }
-
-        /* Visual Link Button in Mismatch Items */
         .mismatch-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .visual-link-btn {
@@ -834,73 +390,217 @@
             background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         }
 
-        .visual-link-btn:active {
-            transform: translateY(0);
+        .download-section {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0fdf4;
+            border-radius: 12px;
+            border: 1px solid #bbf7d0;
         }
 
-        /* Field Preview Styles */
-        .field-preview {
-            margin-top: 15px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .preview-header {
-            background: #3b82f6;
-            color: white;
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .close-preview {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 0;
-            width: 24px;
-            height: 24px;
+        /* Field Location Modal Styles */
+        .field-location-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            transition: background 0.2s ease;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .close-preview:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .field-location-modal.show {
+            opacity: 1;
         }
 
-        .preview-content {
-            padding: 15px;
+        .field-location-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
-        @media (max-width: 768px) {
-            .field-location-content {
-                max-width: 95vw;
-                max-height: 95vh;
-            }
+        .field-location-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
 
-            .field-location-body {
-                grid-template-columns: 1fr;
-                grid-template-rows: 1fr auto;
-            }
+        .field-location-header h3 {
+            margin: 0;
+            color: #1e293b;
+        }
 
-            .field-details-panel {
-                max-height: 300px;
-            }
+        .field-info {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
 
-            .field-info {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+        .field-badge, .page-badge, .coord-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .field-badge.text {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .field-badge.checkbox {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .field-badge.signature {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .page-badge {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .coord-badge {
+            background: #f1f5f9;
+            color: #475569;
+            font-family: monospace;
+        }
+
+        .close-modal-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .close-modal-btn:hover {
+            background: #dc2626;
+        }
+
+        .field-location-body {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .pdf-section-container {
+            position: relative;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+        .pdf-page-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .field-highlight-box {
+            position: absolute;
+            border: 3px solid #ef4444;
+            background: rgba(239, 68, 68, 0.2);
+            pointer-events: none;
+            z-index: 2;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+        }
+
+        .field-pointer {
+            position: absolute;
+            font-size: 1.5rem;
+            z-index: 3;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .field-details-panel {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .field-details-panel h4 {
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+
+        .detail-grid {
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .detail-value {
+            color: #1e293b;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .field-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .field-actions .btn {
+            justify-content: center;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            z-index: 4;
+        }
+
+        .zoom-controls .btn {
+            padding: 6px 10px;
+            font-size: 0.75rem;
         }
 
         @media (max-width: 768px) {
@@ -917,8 +617,13 @@
                 grid-template-columns: 1fr;
             }
 
-            .mismatch-details {
+            .field-location-body {
                 grid-template-columns: 1fr;
+            }
+
+            .mismatch-header {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
     </style>
@@ -927,7 +632,7 @@
     <div class="container">
         <div class="header">
             <h1>🔍 PDF Validator</h1>
-            <p>Validate PDF forms against expected values with automatic field extraction and highlighting</p>
+            <p>Advanced PDF form validation with type-specific field extraction and image-based signature detection</p>
         </div>
 
         <div class="step-indicator">
@@ -942,7 +647,7 @@
             <div class="panel">
                 <h2>📄 Upload PDF for Validation</h2>
 
-                <div class="form-group file-type-selector">
+                <div class="form-group">
                     <label for="file-type">File Type</label>
                     <select id="file-type" class="form-control">
                         <option value="">Loading file types...</option>
@@ -952,7 +657,7 @@
                     </div>
                 </div>
 
-                <div class="form-group config-selector hidden" id="config-version-group">
+                <div class="form-group hidden" id="config-version-group">
                     <label for="config-version">Configuration Version</label>
                     <select id="config-version" class="form-control">
                         <option value="">Select configuration version...</option>
@@ -1005,7 +710,7 @@
                 <h3>📥 Download Results</h3>
                 <p>Download the PDF with highlighted mismatched fields</p>
                 <button class="btn btn-success" id="download-pdf" onclick="downloadHighlightedPDF()">
-                      Download Highlighted PDF
+                    📄 Download Highlighted PDF
                 </button>
             </div>
         </div>
@@ -1015,6 +720,7 @@
         let currentStep = 1;
         let configLoaded = false;
         let actualFieldsExtracted = false;
+        let requestInProgress = false;
 
         // DOM Elements
         const uploadArea = document.getElementById('upload-area');
@@ -1037,6 +743,93 @@
         uploadArea.addEventListener('dragleave', handleDragLeave);
         fileTypeSelect.addEventListener('change', handleFileTypeChange);
 
+        // Enhanced error handling
+        function handleApiError(error, response = null) {
+            console.error('API Error:', error);
+
+            let errorMessage = 'An unexpected error occurred';
+
+            if (response) {
+                if (response.status === 413) {
+                    errorMessage = 'File too large. Maximum size is 100MB.';
+                } else if (response.status === 404) {
+                    errorMessage = 'Resource not found. Please check your configuration.';
+                } else if (response.status === 500) {
+                    errorMessage = 'Server error occurred. Please try again.';
+                } else if (response.status === 403) {
+                    errorMessage = 'Access forbidden. Check your GitHub token permissions.';
+                } else if (!response.ok) {
+                    errorMessage = `HTTP Error: ${response.status}`;
+                }
+            } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage = 'Network error. Please check your internet connection.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            return { message: errorMessage };
+        }
+
+        // Enhanced fetch with error handling
+        async function safeFetch(url, options = {}) {
+            if (requestInProgress) {
+                throw new Error('Another request is already in progress. Please wait.');
+            }
+
+            requestInProgress = true;
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                const contentType = response.headers.get('content-type');
+                if (!response.ok || (contentType && contentType.includes('text/html'))) {
+                    if (contentType && contentType.includes('text/html')) {
+                        throw new Error('Server returned HTML instead of JSON.');
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                return response;
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timed out. Please try again.');
+                }
+                throw error;
+            } finally {
+                requestInProgress = false;
+            }
+        }
+
+        // Safe JSON parsing
+        async function safeJsonParse(response) {
+            try {
+                const text = await response.text();
+
+                if (!text.trim()) {
+                    throw new Error('Empty response from server');
+                }
+
+                if (text.trim().startsWith('<')) {
+                    throw new Error('Server returned HTML instead of JSON.');
+                }
+
+                return JSON.parse(text);
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    throw new Error('Invalid JSON response from server.');
+                }
+                throw error;
+            }
+        }
+
         // Step Management
         function updateStep(step) {
             const steps = document.querySelectorAll('.step');
@@ -1051,11 +844,190 @@
             currentStep = step;
         }
 
+        // Field Location Modal Functions
+        function closeFieldLocationModal() {
+            const modal = document.querySelector('.field-location-modal');
+            if (modal) {
+                modal.classList.add('closing');
+                setTimeout(() => {
+                    modal.remove();
+                }, 300);
+            }
+        }
+
+        function zoomToField(coordinates, displayWidth, displayHeight, pdfWidth, pdfHeight) {
+            const coords = coordinates.split(',').map(c => parseFloat(c.trim()));
+            const [x1, y1, x2, y2] = coords;
+
+            const img = document.getElementById('pdf-location-image');
+            const container = img.parentElement;
+
+            const fieldCenterX = (x1 + x2) / 2 * (displayWidth / pdfWidth);
+            const fieldCenterY = (y1 + y2) / 2 * (displayHeight / pdfHeight);
+
+            img.style.transform = 'scale(2)';
+            img.style.transformOrigin = `${fieldCenterX}px ${fieldCenterY}px`;
+
+            if (!document.getElementById('zoom-controls')) {
+                const zoomControls = document.createElement('div');
+                zoomControls.id = 'zoom-controls';
+                zoomControls.innerHTML = `
+                    <button onclick="resetFieldZoom()" class="btn btn-primary">🔍 Reset</button>
+                    <button onclick="zoomFieldIn()" class="btn btn-primary">➕</button>
+                    <button onclick="zoomFieldOut()" class="btn btn-primary">➖</button>
+                `;
+                zoomControls.className = 'zoom-controls';
+                container.appendChild(zoomControls);
+            }
+        }
+
+        function resetFieldZoom() {
+            const img = document.getElementById('pdf-location-image');
+            if (img) {
+                img.style.transform = 'scale(1)';
+                img.style.transformOrigin = 'center';
+            }
+
+            const controls = document.getElementById('zoom-controls');
+            if (controls) controls.remove();
+        }
+
+        function zoomFieldIn() {
+            const img = document.getElementById('pdf-location-image');
+            if (img) {
+                const currentScale = parseFloat(img.style.transform.match(/scale\(([\d.]+)\)/)?.[1] || 1);
+                img.style.transform = `scale(${Math.min(currentScale * 1.5, 5)})`;
+            }
+        }
+
+        function zoomFieldOut() {
+            const img = document.getElementById('pdf-location-image');
+            if (img) {
+                const currentScale = parseFloat(img.style.transform.match(/scale\(([\d.]+)\)/)?.[1] || 1);
+                img.style.transform = `scale(${Math.max(currentScale / 1.5, 0.5)})`;
+            }
+        }
+
+        function copyCoordinates(coordinates) {
+            navigator.clipboard.writeText(coordinates).then(() => {
+                showStatus('Coordinates copied to clipboard!', 'success');
+            }).catch(() => {
+                showStatus('Failed to copy coordinates', 'error');
+            });
+        }
+
+        // Show Field Location Modal
+        async function showFieldLocation(pageNum, coordinates, fieldName, fieldType) {
+            try {
+                console.log(`🖼️ Showing field location: ${fieldName} on page ${pageNum}`);
+                showStatus(`Loading page ${pageNum} to show field "${fieldName}"...`, 'info');
+
+                const coords = coordinates.split(',').map(c => parseFloat(c.trim()));
+                if (coords.length !== 4) {
+                    showStatus('Invalid coordinates for field location', 'error');
+                    return;
+                }
+
+                const [x1, y1, x2, y2] = coords;
+
+                const response = await safeFetch(`/get_page/${pageNum}?scale=1.0`);
+                const result = await safeJsonParse(response);
+
+                if (result.success) {
+                    const scaleX = result.display_width / result.pdf_width;
+                    const scaleY = result.display_height / result.pdf_height;
+
+                    const fieldX = x1 * scaleX;
+                    const fieldY = y1 * scaleY;
+                    const fieldWidth = (x2 - x1) * scaleX;
+                    const fieldHeight = (y2 - y1) * scaleY;
+
+                    // Create modal
+                    const modal = document.createElement('div');
+                    modal.className = 'field-location-modal';
+                    modal.innerHTML = `
+                        <div class="field-location-content">
+                            <div class="field-location-header">
+                                <h3>📍 Field Location: ${fieldName}</h3>
+                                <div class="field-info">
+                                    <span class="field-badge ${fieldType}">${fieldType}</span>
+                                    <span class="page-badge">Page ${pageNum}</span>
+                                    <span class="coord-badge">${coordinates}</span>
+                                </div>
+                                <button onclick="closeFieldLocationModal()" class="close-modal-btn">✕</button>
+                            </div>
+                            <div class="field-location-body">
+                                <div class="pdf-section-container">
+                                    <img src="${result.image}" alt="PDF Page ${pageNum}" class="pdf-page-image" id="pdf-location-image">
+                                    <div class="field-highlight-box" style="
+                                        left: ${fieldX}px;
+                                        top: ${fieldY}px;
+                                        width: ${fieldWidth}px;
+                                        height: ${fieldHeight}px;
+                                    "></div>
+                                    <div class="field-pointer" style="
+                                        left: ${fieldX - 10}px;
+                                        top: ${fieldY - 10}px;
+                                    ">📍</div>
+                                </div>
+                                <div class="field-details-panel">
+                                    <h4>🔍 Field Details</h4>
+                                    <div class="detail-grid">
+                                        <div class="detail-row">
+                                            <span class="detail-label">Field Name:</span>
+                                            <span class="detail-value">${fieldName}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Type:</span>
+                                            <span class="detail-value">${fieldType}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Page:</span>
+                                            <span class="detail-value">${pageNum}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Coordinates:</span>
+                                            <span class="detail-value">${coordinates}</span>
+                                        </div>
+                                    </div>
+                                    <div class="field-actions">
+                                        <button onclick="zoomToField('${coordinates}', ${result.display_width}, ${result.display_height}, ${result.pdf_width}, ${result.pdf_height})"
+                                                class="btn btn-primary">🔍 Zoom to Field</button>
+                                        <button onclick="copyCoordinates('${coordinates}')"
+                                                class="btn">📋 Copy Coordinates</button>
+                                        <button onclick="closeFieldLocationModal()"
+                                                class="btn">✕ Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    document.body.appendChild(modal);
+
+                    setTimeout(() => {
+                        modal.classList.add('show');
+                    }, 10);
+
+                    showStatus(`Field "${fieldName}" highlighted on page ${pageNum}`, 'success');
+                } else {
+                    throw new Error(result.error || 'Failed to load page');
+                }
+
+            } catch (error) {
+                console.error(`❌ Error showing field location:`, error);
+                const errorInfo = handleApiError(error);
+                showStatus(`Error showing field location: ${errorInfo.message}`, 'error');
+            }
+        }
+
         // Load Available File Types
         async function loadFileTypes() {
             try {
-                const response = await fetch('/get_available_file_types');
-                const result = await response.json();
+                showStatus('Loading available file types...', 'info');
+
+                const response = await safeFetch('/get_available_file_types');
+                const result = await safeJsonParse(response);
 
                 if (result.success && result.file_types.length > 0) {
                     let optionsHTML = '<option value="">Select file type...</option>';
@@ -1076,12 +1048,13 @@
                     fileTypeSelect.innerHTML = '<option value="">No configurations found in repository</option>';
                     showStatus('No configuration packages found in GitHub repository', 'warning');
                 } else {
-                    fileTypeSelect.innerHTML = '<option value="">Failed to load file types</option>';
-                    showStatus(`Failed to load file types: ${result.error}`, 'error');
+                    throw new Error(result.error || 'Failed to load file types');
                 }
             } catch (error) {
+                const errorInfo = handleApiError(error);
                 fileTypeSelect.innerHTML = '<option value="">Error loading file types</option>';
-                showStatus(`Error loading file types: ${error.message}`, 'error');
+                showStatus(`Failed to load file types: ${errorInfo.message}`, 'error');
+                showRetryOption(() => loadFileTypes());
             }
         }
 
@@ -1092,19 +1065,17 @@
             if (!selectedFileType) {
                 configVersionGroup.classList.add('hidden');
                 configVersionSelect.innerHTML = '<option value="">Select configuration version...</option>';
-                hideConfigPreview();
                 return;
             }
 
-            // Show loading state
             configVersionSelect.innerHTML = '<option value="">Loading configurations...</option>';
             configVersionGroup.classList.remove('hidden');
 
             try {
-                const response = await fetch(`/get_config_versions/${selectedFileType}`);
-                const result = await response.json();
+                const response = await safeFetch(`/get_config_versions/${selectedFileType}`);
+                const result = await safeJsonParse(response);
 
-                if (result.success && result.configs.length > 0) {
+                if (result.success && result.configs && result.configs.length > 0) {
                     let optionsHTML = '<option value="">📌 Use latest configuration</option>';
 
                     result.configs.forEach((config, index) => {
@@ -1116,68 +1087,22 @@
                             <option value="${config.filename}"
                                     data-size="${config.size}"
                                     data-is-latest="${isLatest}"
-                                    title="Size: ${config.size}KB | ${config.last_modified}">
+                                    title="Size: ${config.size}KB">
                                 ${config.display_name}${latestBadge}${sizeInfo}
                             </option>
                         `;
                     });
 
                     configVersionSelect.innerHTML = optionsHTML;
-                    showConfigPreview(selectedFileType, result.configs);
-                    showStatus(`Found ${result.configs.length} configuration versions for ${selectedFileType}`, 'info');
+                    showStatus(`Found ${result.configs.length} configuration versions`, 'info');
                 } else {
-                    configVersionSelect.innerHTML = '<option value="">❌ No configurations found</option>';
-                    hideConfigPreview();
-                    showStatus(`No configurations found for ${selectedFileType}`, 'warning');
+                    configVersionSelect.innerHTML = '<option value="">📌 Use latest configuration</option>';
+                    showStatus('Using latest configuration (no versions found)', 'info');
                 }
             } catch (error) {
+                const errorInfo = handleApiError(error);
                 configVersionSelect.innerHTML = '<option value="">❌ Error loading configurations</option>';
-                hideConfigPreview();
-                showStatus(`Error loading configurations: ${error.message}`, 'error');
-            }
-        }
-
-        // Show Config Preview
-        function showConfigPreview(fileType, configs) {
-            let previewHTML = `
-                <div class="config-preview show" id="config-preview">
-                    <h4>📋 Available Configurations for ${fileType.replace('_', ' ').toUpperCase()}</h4>
-                    <div class="config-preview-grid">
-                        <div class="config-preview-item">
-                            <div class="config-preview-label">Total Versions</div>
-                            <div class="config-preview-value">${configs.length}</div>
-                        </div>
-                        <div class="config-preview-item">
-                            <div class="config-preview-label">Latest</div>
-                            <div class="config-preview-value">${configs[0].display_name.split(' ')[0]}</div>
-                        </div>
-                        <div class="config-preview-item">
-                            <div class="config-preview-label">Size Range</div>
-                            <div class="config-preview-value">${Math.min(...configs.map(c => c.size))} - ${Math.max(...configs.map(c => c.size))}KB</div>
-                        </div>
-                        <div class="config-preview-item">
-                            <div class="config-preview-label">Recommendation</div>
-                            <div class="config-preview-value">Use Latest ✨</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Remove existing preview
-            const existingPreview = document.getElementById('config-preview');
-            if (existingPreview) {
-                existingPreview.remove();
-            }
-
-            // Add new preview after config version group
-            configVersionGroup.insertAdjacentHTML('afterend', previewHTML);
-        }
-
-        // Hide Config Preview
-        function hideConfigPreview() {
-            const preview = document.getElementById('config-preview');
-            if (preview) {
-                preview.remove();
+                showStatus(`Error loading configurations: ${errorInfo.message}`, 'error');
             }
         }
 
@@ -1228,7 +1153,6 @@
             formData.append('pdf_file', file);
             formData.append('file_type', fileType);
 
-            // Add specific config filename if selected
             if (configVersion) {
                 formData.append('config_filename', configVersion);
             }
@@ -1237,12 +1161,12 @@
             uploadArea.style.display = 'none';
 
             try {
-                const response = await fetch('/upload_pdf', {
+                const response = await safeFetch('/upload_pdf', {
                     method: 'POST',
                     body: formData
                 });
 
-                const result = await response.json();
+                const result = await safeJsonParse(response);
 
                 if (result.success) {
                     configLoaded = true;
@@ -1256,28 +1180,29 @@
                     showStatus(`PDF uploaded successfully! ${configMsg} (${configInfo.total_fields} fields found)`, 'success');
                     updateStep(2);
 
-                    // Generate input form
                     await generateInputForm();
                 } else {
-                    showStatus(result.error, 'error');
+                    throw new Error(result.error || 'Upload failed');
                 }
             } catch (error) {
-                showStatus(`Upload failed: ${error.message}`, 'error');
+                const errorInfo = handleApiError(error);
+                showStatus(`Upload failed: ${errorInfo.message}`, 'error');
+                showRetryOption(() => uploadPDF(file));
             } finally {
                 uploadLoading.classList.remove('show');
+                uploadArea.style.display = 'block';
             }
         }
 
         // Generate Input Form
         async function generateInputForm() {
             try {
-                const response = await fetch('/generate_input_form');
-                const result = await response.json();
+                const response = await safeFetch('/generate_input_form');
+                const result = await safeJsonParse(response);
 
                 if (result.success) {
                     inputFormContainer.innerHTML = result.form_html;
 
-                    // Add submit handler to the form
                     const form = document.getElementById('validation-form');
                     if (form) {
                         form.addEventListener('submit', handleFormSubmit);
@@ -1287,10 +1212,12 @@
                         showStatus(`Form generated with warning: ${result.warning}`, 'warning');
                     }
                 } else {
-                    showStatus(`Failed to generate form: ${result.error}`, 'error');
+                    throw new Error(result.error || 'Failed to generate form');
                 }
             } catch (error) {
-                showStatus(`Form generation error: ${error.message}`, 'error');
+                const errorInfo = handleApiError(error);
+                showStatus(`Form generation error: ${errorInfo.message}`, 'error');
+                showRetryOption(() => generateInputForm());
             }
         }
 
@@ -1309,7 +1236,7 @@
             showStatus('Validating PDF...', 'info');
 
             try {
-                const response = await fetch('/validate_pdf', {
+                const response = await safeFetch('/validate_pdf', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1317,17 +1244,19 @@
                     body: JSON.stringify(inputData)
                 });
 
-                const result = await response.json();
+                const result = await safeJsonParse(response);
 
                 if (result.success) {
                     updateStep(4);
                     displayValidationResults(result.validation_results);
                     showStatus('Validation completed!', 'success');
                 } else {
-                    showStatus(`Validation failed: ${result.error}`, 'error');
+                    throw new Error(result.error || 'Validation failed');
                 }
             } catch (error) {
-                showStatus(`Validation error: ${error.message}`, 'error');
+                const errorInfo = handleApiError(error);
+                showStatus(`Validation failed: ${errorInfo.message}`, 'error');
+                showRetryOption(() => handleFormSubmit(event));
             }
         }
 
@@ -1335,7 +1264,6 @@
         function displayValidationResults(results) {
             resultsPanel.classList.remove('hidden');
 
-            // Display summary
             const summary = results.summary;
             resultsSummary.innerHTML = `
                 <div class="summary-card info">
@@ -1356,17 +1284,15 @@
                 </div>
             `;
 
-            // Display mismatches with visual links
             if (results.mismatches && results.mismatches.length > 0) {
                 let mismatchHTML = '<h3>❌ Mismatched Fields</h3>';
 
                 results.mismatches.forEach((mismatch, index) => {
-                    const visualLinkId = `visual-link-${index}`;
                     mismatchHTML += `
                         <div class="mismatch-item">
                             <div class="mismatch-header">
                                 <h4>${mismatch.field_name} (${mismatch.field_type}) - Page ${mismatch.page}</h4>
-                                <button class="visual-link-btn" id="${visualLinkId}"
+                                <button class="visual-link-btn"
                                         onclick="showFieldLocation('${mismatch.page}', '${mismatch.coordinates}', '${mismatch.field_name}', '${mismatch.field_type}')"
                                         title="Show this field on PDF">
                                     📍 Show on PDF
@@ -1390,20 +1316,12 @@
                                     <div class="detail-value">${mismatch.field_type}</div>
                                 </div>
                             </div>
-                            <div class="field-preview" id="preview-${index}" style="display: none;">
-                                <div class="preview-header">
-                                    <span>🔍 Field Preview</span>
-                                    <button onclick="hideFieldPreview(${index})" class="close-preview">✕</button>
-                                </div>
-                                <div class="preview-content" id="preview-content-${index}">
-                                    <!-- PDF section will be shown here -->
-                                </div>
-                            </div>
                         </div>
                     `;
                 });
 
                 mismatchList.innerHTML = mismatchHTML;
+                downloadSection.classList.remove('hidden');
             } else {
                 mismatchList.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #10b981;">
@@ -1411,235 +1329,14 @@
                         <p>All fields match the expected values.</p>
                     </div>
                 `;
-            }
-
-            // Show download section only if there are mismatches
-            if (results.mismatches && results.mismatches.length > 0) {
-                downloadSection.classList.remove('hidden');
-            } else {
                 downloadSection.classList.add('hidden');
-            }
-        }
-
-        // Show Field Location on PDF
-        async function showFieldLocation(pageNum, coordinates, fieldName, fieldType) {
-            try {
-                console.log(`🖼️ Showing field location: ${fieldName} on page ${pageNum}`);
-                showStatus(`Loading page ${pageNum} to show field "${fieldName}"...`, 'info');
-
-                // Parse coordinates
-                const coords = coordinates.split(',').map(c => parseFloat(c.trim()));
-                if (coords.length !== 4) {
-                    showStatus('Invalid coordinates for field location', 'error');
-                    return;
-                }
-
-                const [x1, y1, x2, y2] = coords;
-                console.log(`🎯 Field coordinates: (${x1}, ${y1}, ${x2}, ${y2})`);
-
-                // Get PDF page image
-                const response = await fetch(`/get_page/${pageNum}?scale=1.0`);
-                console.log(`📡 Response status: ${response.status}`);
-
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        showStatus(`Page ${pageNum} not found. Please check if the PDF has enough pages.`, 'error');
-                    } else {
-                        showStatus(`Failed to load page ${pageNum}: HTTP ${response.status}`, 'error');
-                    }
-                    return;
-                }
-
-                const result = await response.json();
-                console.log(`📊 Page render result:`, result);
-
-                if (result.success) {
-                    console.log(`✅ Page ${pageNum} loaded: ${result.display_width}x${result.display_height}`);
-
-                    // Calculate field position on the rendered image
-                    const scaleX = result.display_width / result.pdf_width;
-                    const scaleY = result.display_height / result.pdf_height;
-
-                    const fieldX = x1 * scaleX;
-                    const fieldY = y1 * scaleY;
-                    const fieldWidth = (x2 - x1) * scaleX;
-                    const fieldHeight = (y2 - y1) * scaleY;
-
-                    console.log(`📐 Scaled field position: (${fieldX}, ${fieldY}, ${fieldWidth}, ${fieldHeight})`);
-
-                    // Create overlay modal with PDF section
-                    const modal = document.createElement('div');
-                    modal.className = 'field-location-modal';
-                    modal.innerHTML = `
-                        <div class="field-location-content">
-                            <div class="field-location-header">
-                                <h3>📍 Field Location: ${fieldName}</h3>
-                                <div class="field-info">
-                                    <span class="field-badge ${fieldType}">${fieldType}</span>
-                                    <span class="page-badge">Page ${pageNum}</span>
-                                    <span class="coord-badge">${coordinates}</span>
-                                </div>
-                                <button onclick="closeFieldLocationModal()" class="close-modal-btn">✕</button>
-                            </div>
-                            <div class="field-location-body">
-                                <div class="pdf-section-container">
-                                    <img src="${result.image}" alt="PDF Page ${pageNum}" class="pdf-page-image" id="pdf-location-image">
-                                    <div class="field-highlight-box" style="
-                                        left: ${fieldX}px;
-                                        top: ${fieldY}px;
-                                        width: ${fieldWidth}px;
-                                        height: ${fieldHeight}px;
-                                    "></div>
-                                    <div class="field-pointer" style="
-                                        left: ${fieldX - 10}px;
-                                        top: ${fieldY - 10}px;
-                                    ">📍</div>
-                                </div>
-                                <div class="field-details-panel">
-                                    <h4>🔍 Field Details</h4>
-                                    <div class="detail-grid">
-                                        <div class="detail-row">
-                                            <span class="detail-label">Field Name:</span>
-                                            <span class="detail-value">${fieldName}</span>
-                                        </div>
-                                        <div class="detail-row">
-                                            <span class="detail-label">Type:</span>
-                                            <span class="detail-value">${fieldType}</span>
-                                        </div>
-                                        <div class="detail-row">
-                                            <span class="detail-label">Page:</span>
-                                            <span class="detail-value">${pageNum}</span>
-                                        </div>
-                                        <div class="detail-row">
-                                            <span class="detail-label">Coordinates:</span>
-                                            <span class="detail-value">${coordinates}</span>
-                                        </div>
-                                        <div class="detail-row">
-                                            <span class="detail-label">Area Size:</span>
-                                            <span class="detail-value">${Math.round(x2 - x1)} × ${Math.round(y2 - y1)} pts</span>
-                                        </div>
-                                        <div class="detail-row">
-                                            <span class="detail-label">Rendered Size:</span>
-                                            <span class="detail-value">${Math.round(fieldWidth)} × ${Math.round(fieldHeight)} px</span>
-                                        </div>
-                                    </div>
-                                    <div class="field-actions">
-                                        <button onclick="zoomToField('${coordinates}', ${result.display_width}, ${result.display_height}, ${result.pdf_width}, ${result.pdf_height})"
-                                                class="btn btn-primary">🔍 Zoom to Field</button>
-                                        <button onclick="copyCoordinates('${coordinates}')"
-                                                class="btn">📋 Copy Coordinates</button>
-                                        <button onclick="closeFieldLocationModal()"
-                                                class="btn">✕ Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    document.body.appendChild(modal);
-
-                    // Animate the modal appearance
-                    setTimeout(() => {
-                        modal.classList.add('show');
-                    }, 10);
-
-                    showStatus(`Field "${fieldName}" highlighted on page ${pageNum}`, 'success');
-                } else {
-                    console.error(`❌ Page render failed:`, result.error);
-                    showStatus(`Failed to load page ${pageNum}: ${result.error}`, 'error');
-                }
-
-            } catch (error) {
-                console.error(`❌ Error showing field location:`, error);
-                showStatus(`Error showing field location: ${error.message}`, 'error');
-            }
-        }
-
-        // Close Field Location Modal
-        function closeFieldLocationModal() {
-            const modal = document.querySelector('.field-location-modal');
-            if (modal) {
-                modal.classList.add('closing');
-                setTimeout(() => {
-                    modal.remove();
-                }, 300);
-            }
-        }
-
-        // Zoom to Field
-        function zoomToField(coordinates, displayWidth, displayHeight, pdfWidth, pdfHeight) {
-            const coords = coordinates.split(',').map(c => parseFloat(c.trim()));
-            const [x1, y1, x2, y2] = coords;
-
-            const img = document.getElementById('pdf-location-image');
-            const container = img.parentElement;
-
-            // Calculate zoom and scroll position
-            const fieldCenterX = (x1 + x2) / 2 * (displayWidth / pdfWidth);
-            const fieldCenterY = (y1 + y2) / 2 * (displayHeight / pdfHeight);
-
-            // Apply zoom effect
-            img.style.transform = 'scale(2)';
-            img.style.transformOrigin = `${fieldCenterX}px ${fieldCenterY}px`;
-
-            // Add zoom controls
-            if (!document.getElementById('zoom-controls')) {
-                const zoomControls = document.createElement('div');
-                zoomControls.id = 'zoom-controls';
-                zoomControls.innerHTML = `
-                    <button onclick="resetFieldZoom()" class="btn btn-small">🔍 Reset Zoom</button>
-                    <button onclick="zoomFieldIn()" class="btn btn-small">➕ Zoom In</button>
-                    <button onclick="zoomFieldOut()" class="btn btn-small">➖ Zoom Out</button>
-                `;
-                zoomControls.className = 'zoom-controls';
-                container.appendChild(zoomControls);
-            }
-        }
-
-        // Reset Field Zoom
-        function resetFieldZoom() {
-            const img = document.getElementById('pdf-location-image');
-            img.style.transform = 'scale(1)';
-            img.style.transformOrigin = 'center';
-
-            const controls = document.getElementById('zoom-controls');
-            if (controls) controls.remove();
-        }
-
-        // Zoom Field In/Out
-        function zoomFieldIn() {
-            const img = document.getElementById('pdf-location-image');
-            const currentScale = parseFloat(img.style.transform.match(/scale\(([\d.]+)\)/)?.[1] || 1);
-            img.style.transform = `scale(${Math.min(currentScale * 1.5, 5)})`;
-        }
-
-        function zoomFieldOut() {
-            const img = document.getElementById('pdf-location-image');
-            const currentScale = parseFloat(img.style.transform.match(/scale\(([\d.]+)\)/)?.[1] || 1);
-            img.style.transform = `scale(${Math.max(currentScale / 1.5, 0.5)})`;
-        }
-
-        // Copy Coordinates
-        function copyCoordinates(coordinates) {
-            navigator.clipboard.writeText(coordinates).then(() => {
-                showStatus('Coordinates copied to clipboard!', 'success');
-            }).catch(() => {
-                showStatus('Failed to copy coordinates', 'error');
-            });
-        }
-
-        // Hide Field Preview
-        function hideFieldPreview(index) {
-            const preview = document.getElementById(`preview-${index}`);
-            if (preview) {
-                preview.style.display = 'none';
             }
         }
 
         // Download Highlighted PDF
         async function downloadHighlightedPDF() {
             try {
-                const response = await fetch('/download_highlighted_pdf');
+                const response = await safeFetch('/download_highlighted_pdf');
 
                 if (response.ok) {
                     const blob = await response.blob();
@@ -1652,11 +1349,12 @@
 
                     showStatus('Highlighted PDF downloaded successfully!', 'success');
                 } else {
-                    const error = await response.json();
-                    showStatus(`Download failed: ${error.error}`, 'error');
+                    const errorData = await safeJsonParse(response);
+                    throw new Error(errorData.error || 'Download failed');
                 }
             } catch (error) {
-                showStatus(`Download error: ${error.message}`, 'error');
+                const errorInfo = handleApiError(error);
+                showStatus(`Download error: ${errorInfo.message}`, 'error');
             }
         }
 
@@ -1665,7 +1363,6 @@
             const statusHTML = `<div class="status-message status-${type}">${message}</div>`;
             uploadStatus.innerHTML = statusHTML;
 
-            // Auto-hide after 5 seconds for success messages
             if (type === 'success') {
                 setTimeout(() => {
                     if (uploadStatus.innerHTML === statusHTML) {
@@ -1675,11 +1372,23 @@
             }
         }
 
+        // Show retry option for failed operations
+        function showRetryOption(retryFunction) {
+            const retryHTML = `
+                <div class="retry-section">
+                    <p>Operation failed. Would you like to try again?</p>
+                    <button class="btn btn-primary" onclick="retryOperation()">🔄 Retry</button>
+                </div>
+            `;
+
+            uploadStatus.innerHTML += retryHTML;
+            window.retryOperation = retryFunction;
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('PDF Validator initialized');
-            loadFileTypes(); // Load available file types on startup
-            showStatus('Loading available file types...', 'info');
+            console.log('PDF Validator initialized with enhanced features');
+            loadFileTypes();
         });
     </script>
 </body>
