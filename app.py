@@ -31,6 +31,10 @@ import atexit
 from threading import Lock
 import numpy as np
 
+from dotenv import load_dotenv
+load_dotenv()
+
+
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB
 app.config['SECRET_KEY'] = 'validator-secret-key-change-in-production'
@@ -508,7 +512,7 @@ class PDFValidator:
                     if isinstance(value, str) and value.strip():
                         clean_value = value.replace('$', '').replace(',', '').strip()
                         if clean_value.replace('.', '').replace('-', '').isdigit():
-                            exec_globals[key] = float(clean_value)
+                            exec_globals[key] = clean_value # Shashank: changed this from exec_globals[key] = float(clean_value)
                         else:
                             exec_globals[key] = value
                     else:
@@ -590,7 +594,7 @@ class PDFValidator:
                     }
             else:
                 print("📋 No Script3 found, using default validation")
-                self.validation_results = self._default_validation()
+                # self.validation_results = self._default_validation() #Shashank: commented out
 
             return {'success': True, 'validation_results': self.validation_results}
 

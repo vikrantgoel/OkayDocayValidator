@@ -1,0 +1,16 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+
+# VSCode and PyCharm project files
+.idea/
+.vscode/
+
+# Environment variables
+.env
+
+# macOS
+.DS_Store
