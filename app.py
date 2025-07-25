@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Complete PDF Validator Application
+Enhanced PDF Validator Application
 Features:
 - Type-specific field extraction (text, checkbox, signature)
 - Image-based signature detection
-- Pre-parsed field access for Script3
-- Common validation functions
+- Single combined script support (Script1 + Script2)
+- Enhanced default validation with type-specific matching
 - GitHub configuration management
 - Thread-safe operations
 """
@@ -32,11 +32,11 @@ from threading import Lock
 import numpy as np
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
-
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB
+app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024  # 100MB
 app.config['SECRET_KEY'] = 'validator-secret-key-change-in-production'
 
 # GitHub Configuration
@@ -83,6 +83,22 @@ def handle_all_errors(error):
     traceback.print_exc()
 
     return jsonify(error_details), 500
+
+
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors"""
+    # Don't log favicon errors
+    if 'favicon.ico' in request.url:
+        return '', 204
+
+    return jsonify({
+        'success': False,
+        'error': 'Page not found',
+        'error_type': 'NotFound',
+        'requested_url': request.url,
+        'timestamp': datetime.now().isoformat()
+    }), 404
 
 
 class PDFValidator:
@@ -201,7 +217,7 @@ class PDFValidator:
             return {'success': False, 'error': f'GitHub download error: {str(e)}'}
 
     def load_config_package(self, zip_path):
-        """Load configuration package from ZIP file"""
+        """Load configuration package from ZIP file - UPDATED for single script"""
         try:
             with zipfile.ZipFile(zip_path, 'r') as zip_file:
                 file_list = zip_file.namelist()
@@ -214,14 +230,22 @@ class PDFValidator:
                         self.config_data = json.loads(config_content)
                         print(f"✅ Config loaded: {len(self.config_data.get('pages', {}))} pages")
 
-                # Load Python scripts
+                # Load single Python script (validation_script.py or any .py file)
                 script_files = [f for f in file_list if f.endswith('.py')]
-                for script_file in script_files:
+                if script_files:
+                    # Take the first (and should be only) Python file
+                    script_file = script_files[0]
                     with zip_file.open(script_file) as sf:
                         script_content = sf.read().decode('utf-8')
+
+                        # Store as both script1 and script2 for compatibility
+                        self.python_scripts['script1'] = script_content
+                        self.python_scripts['script2'] = script_content
+
                         script_name = os.path.basename(script_file).replace('.py', '')
-                        self.python_scripts[script_name] = script_content
-                        print(f"✅ Script loaded: {script_name}")
+                        print(f"✅ Combined script loaded: {script_name}")
+                else:
+                    print("⚠️ No Python script found - using default form generation")
 
             return {'success': True, 'config': self.config_data, 'scripts': self.python_scripts}
         except Exception as e:
@@ -376,36 +400,6 @@ class PDFValidator:
             print(f"❌ Field extraction failed: {e}")
             return {'success': False, 'error': str(e)}
 
-    def _parse_all_config_fields(self):
-        """Pre-parse all config fields for Script3 access"""
-        parsed_fields = {}
-
-        for page_num, page_data in self.config_data.get('pages', {}).items():
-            for field in page_data.get('fields', []):
-                field_name = field['name']
-
-                # Find field in actual extracted data
-                if page_num in self.actual_fields and field_name in self.actual_fields[page_num]:
-                    field_data = self.actual_fields[page_num][field_name]
-                    parsed_fields[field_name] = {
-                        'actual_value': field_data['value'],
-                        'page': page_num,
-                        'coordinates': field_data['coordinates'],
-                        'field_type': field_data['type'],
-                        'found': True
-                    }
-                else:
-                    parsed_fields[field_name] = {
-                        'actual_value': None,
-                        'page': 'not_found',
-                        'coordinates': 'unknown',
-                        'field_type': 'unknown',
-                        'found': False
-                    }
-
-        print(f"✅ Pre-parsed {len(parsed_fields)} config fields for Script3")
-        return parsed_fields
-
     # Common utility functions for scripts
     def _find_field_in_pdf(self, field_name, actual_fields):
         """Common function to find a field in PDF data"""
@@ -449,7 +443,7 @@ class PDFValidator:
         """Common function for simple text matching"""
         if not actual:
             return False
-        return str(expected).lower().strip() == str(actual).lower().strip()
+        return str(expected).strip() == str(actual).strip()
 
     def _currency_match(self, expected, actual, tolerance=0.01):
         """Common function for currency matching"""
@@ -468,7 +462,7 @@ class PDFValidator:
             return str(expected).lower().strip() == str(actual).lower().strip()
 
     def _checkbox_match(self, expected, actual):
-        """Common function for checkbox matching"""
+        """Common function for checkbox matching - Enhanced for flexible matching"""
         if not actual:
             return False
 
@@ -477,7 +471,7 @@ class PDFValidator:
         return expected_checked == actual_checked
 
     def _signature_match(self, expected, actual):
-        """Common function for signature matching"""
+        """Common function for signature matching - Enhanced for flexible matching"""
         if not actual:
             return False
 
@@ -486,115 +480,57 @@ class PDFValidator:
         return expected_signed == actual_signed
 
     def generate_expected_values(self, input_data):
-        """Generate expected values using Script2"""
+        """Generate expected values with global input_data"""
         if 'script2' not in self.python_scripts:
             self.expected_values = input_data
             return {'success': True, 'expected_values': self.expected_values}
 
         try:
-            script2_code = self.python_scripts['script2']
+            script_code = self.python_scripts['script2']
 
             exec_globals = {
-                'input_data': input_data,
+                'input_data': input_data,  # ✅ Global input_data with actual user values
                 'config': self.config_data,
                 'actual_fields': self.actual_fields,
                 'json': json,
                 'math': __import__('math'),
                 'datetime': datetime,
+                'form_variables': [],
                 'expected_values': {},
                 'print': print,
                 'len': len, 'str': str, 'float': float, 'int': int, 'round': round
             }
 
-            # Add input variables directly
-            for key, value in input_data.items():
-                try:
-                    if isinstance(value, str) and value.strip():
-                        clean_value = value.replace('$', '').replace(',', '').strip()
-                        if clean_value.replace('.', '').replace('-', '').isdigit():
-                            exec_globals[key] = clean_value # Shashank: changed this from exec_globals[key] = float(clean_value)
-                        else:
-                            exec_globals[key] = value
-                    else:
-                        exec_globals[key] = value
-                except:
-                    exec_globals[key] = value
+            print(f"🔄 Executing script with input_data: {input_data}")
 
-            exec(script2_code, exec_globals)
+            exec(script_code, exec_globals)
             calculated_expected = exec_globals.get('expected_values', {})
 
             if calculated_expected:
                 self.expected_values = calculated_expected
-                print(f"✅ Script2 calculated {len(calculated_expected)} expected values")
+                print(f"✅ Script calculated {len(calculated_expected)} expected values")
             else:
                 self.expected_values = input_data
 
             return {'success': True, 'expected_values': self.expected_values}
 
         except Exception as e:
-            print(f"❌ Script2 error: {e}")
+            print(f"❌ Script error: {e}")
+            import traceback
+            traceback.print_exc()
             self.expected_values = input_data
-            return {'success': True, 'expected_values': self.expected_values, 'warning': f'Script2 error: {str(e)}'}
+            return {'success': True, 'expected_values': self.expected_values, 'warning': f'Script error: {str(e)}'}
 
     def validate_fields(self):
-        """Enhanced validation with pre-parsed fields for Script3"""
+        """Enhanced validation using default validator with type-specific matching"""
         if not self.expected_values or not self.actual_fields:
             return {'success': False, 'error': 'Expected or actual values not available'}
 
         try:
-            if 'script3' in self.python_scripts:
-                print("🧮 Using Script3 for validation")
-                script3_code = self.python_scripts['script3']
+            print("📋 Using enhanced default validation with type-specific matching")
 
-                # Pre-parse all config fields
-                parsed_fields = self._parse_all_config_fields()
-
-                exec_globals = {
-                    'expected_values': self.expected_values,
-                    'actual_fields': self.actual_fields,
-                    'config': self.config_data,
-                    'validation_results': {},
-                    'matches': [],
-                    'mismatches': [],
-
-                    # All fields directly available
-                    'all_actual_fields': parsed_fields,
-
-                    # Common utility functions
-                    'find_field_in_pdf': self._find_field_in_pdf,
-                    'create_result_entry': self._create_result_entry,
-                    'calculate_summary': self._calculate_summary,
-                    'simple_text_match': self._simple_text_match,
-                    'currency_match': self._currency_match,
-                    'checkbox_match': self._checkbox_match,
-                    'signature_match': self._signature_match,
-
-                    'print': print,
-                    'len': len, 'str': str, 'float': float, 'int': int
-                }
-
-                # Add each field as individual variable (af_fieldname)
-                for field_name, field_data in parsed_fields.items():
-                    exec_globals[f'af_{field_name}'] = field_data['actual_value']
-                    exec_globals[f'{field_name}_info'] = field_data
-
-                exec(script3_code, exec_globals)
-
-                script_results = exec_globals.get('validation_results', {})
-                if script_results and 'summary' in script_results:
-                    self.validation_results = script_results
-                else:
-                    # Build from components
-                    matches = exec_globals.get('matches', [])
-                    mismatches = exec_globals.get('mismatches', [])
-                    self.validation_results = {
-                        'matches': matches,
-                        'mismatches': mismatches,
-                        'summary': self._calculate_summary(matches, mismatches)
-                    }
-            else:
-                print("📋 No Script3 found, using default validation")
-                # self.validation_results = self._default_validation() #Shashank: commented out
+            # Always use enhanced default validation
+            self.validation_results = self._default_validation()
 
             return {'success': True, 'validation_results': self.validation_results}
 
@@ -602,10 +538,10 @@ class PDFValidator:
             print(f"❌ Validation error: {e}")
             self.validation_results = self._default_validation()
             return {'success': True, 'validation_results': self.validation_results,
-                    'warning': f'Script3 error: {str(e)}'}
+                    'warning': f'Validation error: {str(e)}'}
 
     def _default_validation(self):
-        """Default validation when no Script3"""
+        """Enhanced default validation with type-specific matching"""
         matches = []
         mismatches = []
 
@@ -613,12 +549,24 @@ class PDFValidator:
             for field_name, field_data in page_fields.items():
                 expected_value = self.expected_values.get(field_name, '')
                 actual_value = field_data['value']
+                field_type = field_data['type']
 
-                is_match = self._simple_text_match(expected_value, actual_value)
+                # USE TYPE-SPECIFIC MATCHING
+                if field_type == 'checkbox':
+                    is_match = self._checkbox_match(expected_value, actual_value)
+                    print(
+                        f"🔘 Checkbox {field_name}: expected='{expected_value}' actual='{actual_value}' match={is_match}")
+                elif field_type == 'signature':
+                    is_match = self._signature_match(expected_value, actual_value)
+                    print(
+                        f"✍️ Signature {field_name}: expected='{expected_value}' actual='{actual_value}' match={is_match}")
+                else:  # text and any other field types
+                    is_match = self._simple_text_match(expected_value, actual_value)
+                    print(f"📝 Text {field_name}: expected='{expected_value}' actual='{actual_value}' match={is_match}")
 
                 result_entry = {
                     'field_name': field_name,
-                    'field_type': field_data['type'],
+                    'field_type': field_type,
                     'page': page_num,
                     'coordinates': field_data['coordinates'],
                     'expected': expected_value,
@@ -884,78 +832,132 @@ def upload_pdf():
             return jsonify({'success': False, 'error': f'Upload failed: {str(e)}'})
 
 
+
 @app.route('/generate_input_form', methods=['GET'])
 def generate_input_form():
-    """Generate input form using Script1"""
+    """Generate input form with global input_data"""
     try:
         if not validator.config_data:
             return jsonify({'success': False, 'error': 'No configuration loaded'})
 
         form_variables = []
-        script1_warning = None
+        script_warning = None
 
         if 'script1' in validator.python_scripts:
             try:
-                script1_code = validator.python_scripts['script1']
+                script_code = validator.python_scripts['script1']
+
                 exec_globals = {
                     'config': validator.config_data,
                     'actual_fields': validator.actual_fields,
                     'form_variables': [],
+                    'expected_values': {},
+                    'input_data': {},  # ✅ Make input_data available as empty dict
                     'print': print
                 }
 
-                exec(script1_code, exec_globals)
+                exec(script_code, exec_globals)
                 form_variables = exec_globals.get('form_variables', [])
-                print(f"✅ Script1 provided {len(form_variables)} form variables")
+                print(f"✅ Script executed successfully, got {len(form_variables)} form variables")
 
             except Exception as e:
-                print(f"❌ Script1 error: {e}")
-                script1_warning = f'Script1 error: {str(e)}'
+                script_warning = f'Script error: {str(e)}'
+                form_variables = ['buyer_name', 'invoice_date', 'total_amount']
+
+        else:
+            form_variables = ['buyer_name', 'invoice_date', 'total_amount']
 
         form_html = _generate_form_from_variables(form_variables)
+
         response_data = {'success': True, 'form_html': form_html}
-        if script1_warning:
-            response_data['warning'] = script1_warning
+        if script_warning:
+            response_data['warning'] = script_warning
 
         return jsonify(response_data)
 
     except Exception as e:
         print(f"❌ Form generation error: {e}")
-        form_html = _generate_config_based_form()
-        return jsonify({'success': True, 'form_html': form_html, 'warning': f'Form generation error: {str(e)}'})
+        fallback_form = _generate_form_from_variables(['buyer_name', 'invoice_date', 'total_amount'])
+        return jsonify({
+            'success': True,
+            'form_html': fallback_form,
+            'warning': f'Form generation error: {str(e)}'
+        })
+
+
+def _generate_safe_form_variables():
+    """Safely generate form variables from config"""
+    form_variables = []
+
+    try:
+        if validator.config_data and 'pages' in validator.config_data:
+            pages = validator.config_data['pages']
+
+            if isinstance(pages, dict):
+                for page_num, page_data in pages.items():
+                    if isinstance(page_data, dict) and 'fields' in page_data:
+                        fields = page_data['fields']
+
+                        if isinstance(fields, list):
+                            for field in fields:
+                                if isinstance(field, dict) and 'name' in field:
+                                    field_name = field['name']
+                                    if field_name not in form_variables:
+                                        form_variables.append(field_name)
+    except Exception as e:
+        print(f"❌ Safe form variable generation error: {e}")
+        # Absolute fallback
+        form_variables = ['input_value']
+
+    return form_variables
 
 
 def _generate_form_from_variables(form_variables):
-    """Generate HTML form from Script1 variables"""
+    """Enhanced form with auto-detection of field types"""
     form_html = '<form id="validation-form" class="validation-form">'
     form_html += '<h3>📝 Enter Expected Values</h3>'
-    form_html += '<p class="form-description">Fill in the values you expect to find in the PDF</p>'
 
-    if form_variables:
-        form_html += '<div class="form-section">'
-        form_html += '<h4>📊 Input Variables (from Script1)</h4>'
+    for variable in form_variables:
+        display_name = variable.replace('_', ' ').title()
 
-        for variable in form_variables:
-            display_name = variable.replace('_', ' ').title()
+        # Auto-detect field type from name
+        if any(word in variable.lower() for word in ['checkbox', 'check', 'agree', 'terms']):
+            # Checkbox dropdown
             form_html += f'''
             <div class="form-group">
-                <label for="{variable}" class="variable-label">📈 {display_name}</label>
-                <input type="text" id="{variable}" name="{variable}" class="form-control variable-input" 
-                       placeholder="Enter {display_name.lower()}" required>
-                <div class="variable-hint">This will be used in Script2 calculations</div>
+                <label for="{variable}">{display_name}:</label>
+                <select id="{variable}" name="{variable}" class="form-control">
+                    <option value="unchecked">☐ Unchecked</option>
+                    <option value="checked">☑️ Checked</option>
+                </select>
             </div>
             '''
-        form_html += '</div>'
-    else:
-        form_html += _generate_config_fields_section()
+        elif any(word in variable.lower() for word in ['signature', 'sign']):
+            # Signature dropdown
+            form_html += f'''
+            <div class="form-group">
+                <label for="{variable}">{display_name}:</label>
+                <select id="{variable}" name="{variable}" class="form-control">
+                    <option value="blank">📄 Blank</option>
+                    <option value="signed">✍️ Signed</option>
+                </select>
+            </div>
+            '''
+        else:
+            # Text input
+            form_html += f'''
+            <div class="form-group">
+                <label for="{variable}">{display_name}:</label>
+                <input type="text" id="{variable}" name="{variable}" class="form-control" required>
+            </div>
+            '''
 
-    form_html += '<button type="submit" class="btn btn-primary">🔍 Calculate & Validate</button>'
-    form_html += '</form>'
+    form_html += '<button type="submit" class="btn btn-primary">🔍 Validate PDF</button></form>'
     return form_html
 
 
 def _generate_config_fields_section():
-    """Generate form from config fields when no Script1"""
+    """Generate form from config fields when no script"""
     section_html = '<div class="form-section">'
     section_html += '<h4>📄 Expected Field Values</h4>'
 
@@ -979,6 +981,8 @@ def _generate_config_fields_section():
                 <select id="{field_name}" name="{field_name}" class="form-control">
                     <option value="unchecked">Unchecked</option>
                     <option value="checked">Checked</option>
+                    <option value="true">True</option>
+                    <option value="yes">Yes</option>
                 </select>
                 '''
             elif field_type == 'signature':
@@ -986,6 +990,8 @@ def _generate_config_fields_section():
                 <select id="{field_name}" name="{field_name}" class="form-control">
                     <option value="blank">Blank</option>
                     <option value="signed">Signed</option>
+                    <option value="present">Present</option>
+                    <option value="yes">Yes</option>
                 </select>
                 '''
             else:
@@ -1011,7 +1017,7 @@ def _generate_config_based_form():
 
 @app.route('/validate_pdf', methods=['POST'])
 def validate_pdf():
-    """Validate PDF using Script2 and Script3"""
+    """Validate PDF using combined script and enhanced default validation"""
     with validator_lock:
         try:
             input_data = request.get_json()
@@ -1021,12 +1027,12 @@ def validate_pdf():
             if not validator.config_data or not validator.actual_fields:
                 return jsonify({'success': False, 'error': 'PDF not loaded or fields not extracted'})
 
-            # Generate expected values using Script2
+            # Generate expected values using combined script (Script2)
             expected_result = validator.generate_expected_values(input_data)
             if not expected_result['success']:
                 return jsonify(expected_result)
 
-            # Validate fields using Script3
+            # Validate fields using enhanced default validation
             validation_result = validator.validate_fields()
             if not validation_result['success']:
                 return jsonify(validation_result)
@@ -1037,8 +1043,8 @@ def validate_pdf():
                 'expected_values': validator.expected_values,
                 'actual_fields': validator.actual_fields,
                 'debug_info': {
-                    'script2_warning': expected_result.get('warning'),
-                    'script3_warning': validation_result.get('warning'),
+                    'script_warning': expected_result.get('warning'),
+                    'validation_warning': validation_result.get('warning'),
                     'total_expected': len(validator.expected_values),
                     'total_actual_fields': sum(len(page.values()) for page in validator.actual_fields.values()),
                     'memory_usage_mb': validator.get_memory_usage()
@@ -1175,12 +1181,13 @@ def cleanup_on_exit():
 atexit.register(cleanup_on_exit)
 
 if __name__ == '__main__':
-    print("🔍 PDF Validator App Starting...")
+    print("🔍 Enhanced PDF Validator App Starting...")
     print("📄 Features:")
     print("  ✅ Type-specific field extraction (text, checkbox, signature)")
     print("  ✅ Image-based signature detection")
-    print("  ✅ Pre-parsed field access for Script3")
-    print("  ✅ Common validation functions")
+    print("  ✅ Single combined script support (Script1 + Script2)")
+    print("  ✅ Enhanced default validation with type-specific matching")
+    print("  ✅ Flexible checkbox/signature matching")
     print("  ✅ GitHub configuration management")
     print("  ✅ Visual field highlighting")
     print("🌐 http://localhost:5001")

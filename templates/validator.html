@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Validator</title>
+    <title>PDF Validator - Complete Application</title>
     <style>
         * {
             margin: 0;
@@ -862,8 +862,21 @@
             const img = document.getElementById('pdf-location-image');
             const container = img.parentElement;
 
-            const fieldCenterX = (x1 + x2) / 2 * (displayWidth / pdfWidth);
-            const fieldCenterY = (y1 + y2) / 2 * (displayHeight / pdfHeight);
+            // Calculate scale factors
+            const scaleX = displayWidth / pdfWidth;
+            const scaleY = displayHeight / pdfHeight;
+
+            // Convert PDF coordinates to web coordinates (fix coordinate system)
+            const webX1 = x1 * scaleX;
+            const webY1 = (pdfHeight - y2) * scaleY;  // Convert from bottom-left to top-left
+            const webX2 = x2 * scaleX;
+            const webY2 = (pdfHeight - y1) * scaleY;
+
+            // Calculate field center in web coordinates
+            const fieldCenterX = (webX1 + webX2) / 2;
+            const fieldCenterY = (webY1 + webY2) / 2;
+
+            console.log(`🔍 Zoom center: (${fieldCenterX.toFixed(1)}, ${fieldCenterY.toFixed(1)})`);
 
             img.style.transform = 'scale(2)';
             img.style.transformOrigin = `${fieldCenterX}px ${fieldCenterY}px`;
