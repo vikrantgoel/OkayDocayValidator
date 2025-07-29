@@ -657,15 +657,7 @@
                     </div>
                 </div>
 
-                <div class="form-group hidden" id="config-version-group">
-                    <label for="config-version">Configuration Version</label>
-                    <select id="config-version" class="form-control">
-                        <option value="">Select configuration version...</option>
-                    </select>
-                    <div class="form-help">
-                        Choose specific configuration version or leave blank for latest
-                    </div>
-                </div>
+
 
                 <div class="upload-area" id="upload-area" onclick="document.getElementById('pdf-file').click()">
                     <input type="file" id="pdf-file" class="file-input" accept=".pdf">
@@ -726,8 +718,7 @@
         const uploadArea = document.getElementById('upload-area');
         const pdfFileInput = document.getElementById('pdf-file');
         const fileTypeSelect = document.getElementById('file-type');
-        const configVersionGroup = document.getElementById('config-version-group');
-        const configVersionSelect = document.getElementById('config-version');
+
         const uploadLoading = document.getElementById('upload-loading');
         const uploadStatus = document.getElementById('upload-status');
         const inputFormContainer = document.getElementById('input-form-container');
@@ -1073,51 +1064,15 @@
 
         // Handle File Type Selection
         async function handleFileTypeChange() {
-            const selectedFileType = fileTypeSelect.value;
+    const selectedFileType = fileTypeSelect.value;
 
-            if (!selectedFileType) {
-                configVersionGroup.classList.add('hidden');
-                configVersionSelect.innerHTML = '<option value="">Select configuration version...</option>';
-                return;
-            }
+    if (!selectedFileType) {
+        return;
+    }
 
-            configVersionSelect.innerHTML = '<option value="">Loading configurations...</option>';
-            configVersionGroup.classList.remove('hidden');
-
-            try {
-                const response = await safeFetch(`/get_config_versions/${selectedFileType}`);
-                const result = await safeJsonParse(response);
-
-                if (result.success && result.configs && result.configs.length > 0) {
-                    let optionsHTML = '<option value="">📌 Use latest configuration</option>';
-
-                    result.configs.forEach((config, index) => {
-                        const isLatest = index === 0;
-                        const latestBadge = isLatest ? ' 🔥' : '';
-                        const sizeInfo = config.size ? ` (${config.size}KB)` : '';
-
-                        optionsHTML += `
-                            <option value="${config.filename}"
-                                    data-size="${config.size}"
-                                    data-is-latest="${isLatest}"
-                                    title="Size: ${config.size}KB">
-                                ${config.display_name}${latestBadge}${sizeInfo}
-                            </option>
-                        `;
-                    });
-
-                    configVersionSelect.innerHTML = optionsHTML;
-                    showStatus(`Found ${result.configs.length} configuration versions`, 'info');
-                } else {
-                    configVersionSelect.innerHTML = '<option value="">📌 Use latest configuration</option>';
-                    showStatus('Using latest configuration (no versions found)', 'info');
-                }
-            } catch (error) {
-                const errorInfo = handleApiError(error);
-                configVersionSelect.innerHTML = '<option value="">❌ Error loading configurations</option>';
-                showStatus(`Error loading configurations: ${errorInfo.message}`, 'error');
-            }
-        }
+    // Just show that we're using latest config
+    showStatus(`Selected: ${selectedFileType} (will use latest configuration)`, 'info');
+}
 
         // File Upload Handlers
         function handleFileUpload(event) {
@@ -1154,7 +1109,7 @@
         // Upload PDF and Process
         async function uploadPDF(file) {
             const fileType = fileTypeSelect.value.trim();
-            const configVersion = configVersionSelect.value.trim();
+
 
             if (!fileType) {
                 showStatus('Please select a file type before uploading', 'error');
@@ -1166,9 +1121,6 @@
             formData.append('pdf_file', file);
             formData.append('file_type', fileType);
 
-            if (configVersion) {
-                formData.append('config_filename', configVersion);
-            }
 
             uploadLoading.classList.add('show');
             uploadArea.style.display = 'none';
@@ -1186,12 +1138,7 @@
                     actualFieldsExtracted = true;
 
                     const configInfo = result.config_info;
-                    const configMsg = configVersion ?
-                        `Configuration "${configInfo.config_filename}" loaded` :
-                        'Latest configuration loaded';
-
-                    showStatus(`PDF uploaded successfully! ${configMsg} (${configInfo.total_fields} fields found)`, 'success');
-                    updateStep(2);
+                    showStatus(`PDF uploaded successfully! Latest configuration loaded (${configInfo.total_fields} fields found)`, 'success');
 
                     await generateInputForm();
                 } else {
