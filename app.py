@@ -835,7 +835,7 @@ def upload_pdf():
 
 @app.route('/generate_input_form', methods=['GET'])
 def generate_input_form():
-    """Generate input form with global input_data"""
+    """Generate input form with field types from config instead of name inference"""
     try:
         if not validator.config_data:
             return jsonify({'success': False, 'error': 'No configuration loaded'})
@@ -862,11 +862,14 @@ def generate_input_form():
 
             except Exception as e:
                 script_warning = f'Script error: {str(e)}'
-                form_variables = ['buyer_name', 'invoice_date', 'total_amount']
+                # Use safe fallback that gets fields from config
+                form_variables = _generate_safe_form_variables()
 
         else:
-            form_variables = ['buyer_name', 'invoice_date', 'total_amount']
+            # No script available, generate from config
+            form_variables = _generate_safe_form_variables()
 
+        # Generate form using config-based field types
         form_html = _generate_form_from_variables(form_variables)
 
         response_data = {'success': True, 'form_html': form_html}
@@ -877,13 +880,16 @@ def generate_input_form():
 
     except Exception as e:
         print(f"❌ Form generation error: {e}")
-        fallback_form = _generate_form_from_variables(['buyer_name', 'invoice_date', 'total_amount'])
-        return jsonify({
-            'success': True,
-            'form_html': fallback_form,
-            'warning': f'Form generation error: {str(e)}'
-        })
-
+        # Emergency fallback
+        try:
+            fallback_form = _generate_config_based_form()
+            return jsonify({
+                'success': True,
+                'form_html': fallback_form,
+                'warning': f'Form generation error, using fallback: {str(e)}'
+            })
+        except:
+            return jsonify({'success': False, 'error': f'Form generation failed: {str(e)}'})
 
 def _generate_safe_form_variables():
     """Safely generate form variables from config"""
@@ -912,16 +918,39 @@ def _generate_safe_form_variables():
     return form_variables
 
 
+def _get_field_type_from_config(field_name):
+    """Get field type from config data based on field name"""
+    try:
+        if not validator.config_data or 'pages' not in validator.config_data:
+            return 'text'  # Default to text if no config
+
+        # Search through all pages and fields to find the field type
+        for page_num, page_data in validator.config_data['pages'].items():
+            if 'fields' in page_data:
+                for field in page_data['fields']:
+                    if isinstance(field, dict) and field.get('name') == field_name:
+                        return field.get('type', 'text')
+
+        # If field not found in config, default to text
+        return 'text'
+
+    except Exception as e:
+        print(f"❌ Error getting field type for {field_name}: {e}")
+        return 'text'  # Safe fallback
+
+
 def _generate_form_from_variables(form_variables):
-    """Enhanced form with auto-detection of field types"""
+    """Enhanced form with field type detection from config instead of variable names"""
     form_html = '<form id="validation-form" class="validation-form">'
     form_html += '<h3>📝 Enter Expected Values</h3>'
 
     for variable in form_variables:
         display_name = variable.replace('_', ' ').title()
 
-        # Auto-detect field type from name
-        if any(word in variable.lower() for word in ['checkbox', 'check', 'agree', 'terms']):
+        # Find field type from config instead of inferring from name
+        field_type = _get_field_type_from_config(variable)
+
+        if field_type == 'checkbox':
             # Checkbox dropdown
             form_html += f'''
             <div class="form-group">
@@ -932,7 +961,7 @@ def _generate_form_from_variables(form_variables):
                 </select>
             </div>
             '''
-        elif any(word in variable.lower() for word in ['signature', 'sign']):
+        elif field_type == 'signature':
             # Signature dropdown
             form_html += f'''
             <div class="form-group">
@@ -944,7 +973,7 @@ def _generate_form_from_variables(form_variables):
             </div>
             '''
         else:
-            # Text input
+            # Text input (default for 'text' type and unknown types)
             form_html += f'''
             <div class="form-group">
                 <label for="{variable}">{display_name}:</label>
