@@ -44,7 +44,7 @@ GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', '')
 GITHUB_REPO_OWNER = os.getenv('GITHUB_REPO_OWNER', 'your-username')
 GITHUB_REPO_NAME = os.getenv('GITHUB_REPO_NAME', 'pdf-configs')
 
-# Thread safety
+# Thread
 validator_lock = Lock()
 
 
